@@ -4,7 +4,6 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { createSendToken } from "src/auth/jwt-token";
 import { RpcException } from "@nestjs/microservices";
 import { JwtService } from "@nestjs/jwt";
-import { getUserRepo } from "src/repositiories/repository";
 import { BaseUserDto, LoginUserDto } from "./dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
@@ -22,7 +21,7 @@ export class UsersService {
   async signup(createUserDto: CreateUserDto) {
     try {
       const user = this.userRepository.create(createUserDto);
-      const savedUser = await getUserRepo().save(user);
+      const savedUser = await this.userRepository.save(user);
       return createSendToken(savedUser, this.jwtService);
     } catch (error) {
       throw new RpcException(error as object);
@@ -52,8 +51,30 @@ export class UsersService {
     return createSendToken(user, this.jwtService);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findAllUsers() {
+    return this.userRepository.find();
+  }
+
+  async verifyToken(token: string): Promise<BaseUserDto> {
+    try {
+      const decoded: { id: string; username: string } =
+        await this.jwtService.verifyAsync(token, {
+          secret: "jwtConstants.secret",
+        });
+
+      const user = await this.userRepository.findOne({
+        where: { id: decoded.id },
+      });
+
+      if (!user) {
+        throw new RpcException("User not found.");
+      }
+
+      return user;
+    } catch (error) {
+      console.log("err from verify token", error);
+      throw new RpcException("Invalid or expired token.");
+    }
   }
 
   findOne(id: number) {

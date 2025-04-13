@@ -1,5 +1,10 @@
 import { Controller } from "@nestjs/common";
-import { MessagePattern, Payload } from "@nestjs/microservices";
+import {
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from "@nestjs/microservices";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -10,7 +15,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @MessagePattern("user_signup")
-  signup(@Payload() createUserDto: CreateUserDto): Promise<any> {
+  signup(
+    @Payload() createUserDto: CreateUserDto,
+    @Ctx() ctx: RmqContext,
+  ): Promise<any> {
     return this.usersService.signup(createUserDto);
   }
 
@@ -19,9 +27,14 @@ export class UsersController {
     return this.usersService.login(loginUserDto);
   }
 
-  @MessagePattern("findAllUsers")
-  findAll() {
-    return this.usersService.findAll();
+  @MessagePattern("find_All_Users")
+  findAll(@Ctx() ctx: RmqContext) {
+    return this.usersService.findAllUsers();
+  }
+
+  @MessagePattern("verify_token")
+  async verifyToken(@Payload() token: string): Promise<BaseUserDto> {
+    return this.usersService.verifyToken(token["token"]);
   }
 
   @MessagePattern("findOneUser")
