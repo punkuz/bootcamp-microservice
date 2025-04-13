@@ -6,14 +6,18 @@ async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
-      transport: Transport.TCP,
+      transport: Transport.RMQ,
       options: {
-        host: "127.0.0.1",
-        port: 3001,
+        urls: ["amqp://localhost:5672"],
+        queue: "user_queue",
+        queueOptions: {
+          durable: false,
+        },
       },
     },
   );
-  //initialize datasource
+  //start listening
   await app.listen();
+  console.log("User Microservice is listening");
 }
 bootstrap();

@@ -7,10 +7,13 @@ import { UserController } from "./user/user.controller";
     ClientsModule.register([
       {
         name: "USER_CLIENT",
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: "127.0.0.1",
-          port: 3001,
+          urls: [process.env.RABBITMQ_URL ?? "amqp://localhost:5672"],
+          queue: "user_queue",
+          queueOptions: {
+            durable: false,
+          },
         },
       },
     ]),
