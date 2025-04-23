@@ -2,13 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { createSendToken } from "src/auth/jwt-token";
-import { RpcException } from "@nestjs/microservices";
 import { JwtService } from "@nestjs/jwt";
 import { BaseUserDto, LoginUserDto } from "./dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import { userData } from "src/constants/constant";
+import { HttpRpcException } from "src/exceptions/http.rpc.exception";
 
 @Injectable()
 export class UsersService {
@@ -24,7 +24,11 @@ export class UsersService {
       const savedUser = await this.userRepository.save(user);
       return createSendToken(savedUser, this.jwtService);
     } catch (error) {
-      throw new RpcException(error as object);
+      if (error.code === "ER_DUP_ENTRY") {
+        throw HttpRpcException.badRequest("Username or email already exists.");
+      }
+      // Handle other database errors or unexpected errors
+      throw HttpRpcException.internalServerError("SignUp failed.");
     }
   }
 
@@ -33,15 +37,15 @@ export class UsersService {
 
     // 1) Check if email and password exist
     if (!email || !password) {
-      throw new RpcException("Please provide email and password!");
+      throw HttpRpcException.badRequest("Please provide email and password!");
     }
     // 2) Check if user exists && password is correct
     const user = await this.userRepository.findOne({
       where: { email },
-      select: userData as any,
+      select: userData as unknown as never,
     });
     if (!user || !(await user.correctPassword(password))) {
-      throw new RpcException("Incorrect email or password");
+      throw HttpRpcException.badRequest("Incorrect email or password");
     }
 
     //update last login
@@ -67,13 +71,13 @@ export class UsersService {
       });
 
       if (!user) {
-        throw new RpcException("User not found.");
+        throw HttpRpcException.notFound("User not found.");
       }
 
       return user;
     } catch (error) {
       console.log("err from verify token", error);
-      throw new RpcException("Invalid or expired token.");
+      throw HttpRpcException.forbidden("Invalid or expired token.");
     }
   }
 
