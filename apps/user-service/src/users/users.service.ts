@@ -59,7 +59,7 @@ export class UsersService {
     try {
       const decoded: { id: string; username: string } =
         await this.jwtService.verifyAsync(token, {
-          secret: "jwtConstants.secret",
+          secret: process.env.JWT_SECRET,
         });
 
       const user = await this.userRepository.findOne({
