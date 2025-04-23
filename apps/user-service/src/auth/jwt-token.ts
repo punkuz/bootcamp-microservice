@@ -1,5 +1,5 @@
 import { JwtService } from "@nestjs/jwt";
-import { RpcException } from "@nestjs/microservices";
+import { HttpRpcException } from "src/exceptions/http.rpc.exception";
 import { BaseUserDto } from "src/users/dto";
 
 //Return token response
@@ -20,6 +20,8 @@ export const createSendToken = async (
     };
   } catch (error) {
     console.log("error", error);
-    throw new RpcException(error as object);
+    throw HttpRpcException.internalServerError(
+      "Could not generate authentication token.",
+    );
   }
 };

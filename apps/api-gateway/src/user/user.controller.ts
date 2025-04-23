@@ -1,15 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Inject, Post, UseGuards } from "@nestjs/common";
 import { CreateUserDto } from "./dto";
-import { ClientProxy, RpcException } from "@nestjs/microservices";
+import { ClientProxy } from "@nestjs/microservices";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { Roles } from "src/decorators/roles.decoraator";
 import { Role } from "src/types/role.enum";
@@ -29,34 +20,12 @@ export class UserController {
   @UseGuards(RolesGuard)
   @UseGuards(AuthGuard)
   findAllUsers() {
-    try {
-      return this.userClient.send("find_All_Users", {});
-    } catch (error) {
-      if (error instanceof RpcException) {
-        // If the microservice returned an RpcException, re-throw it
-        throw error;
-      }
-      throw new HttpException(
-        "User Fetch failed. Please try again later.",
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return this.userClient.send("find_All_Users", {});
   }
 
   @Post("signup")
-  signup(@Body() user: CreateUserDto) {
-    try {
-      return this.userClient.send("user_signup", user);
-    } catch (error) {
-      if (error instanceof RpcException) {
-        // If the microservice returned an HttpException, re-throw it
-        throw error;
-      }
-      throw new HttpException(
-        "Signup failed. Please try again later.",
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  signup(@Body() createUserDto: CreateUserDto) {
+    return this.userClient.send("user_signup", createUserDto);
   }
   //add a comment
   // @Patch("updatePassword")
@@ -72,17 +41,6 @@ export class UserController {
 
   @Post("login")
   login(@Body() loginUserDto: LoginUserDto) {
-    try {
-      return this.userClient.send("user_login", loginUserDto);
-    } catch (error) {
-      if (error instanceof RpcException) {
-        // If the microservice returned an RpcException, re-throw it
-        throw error;
-      }
-      throw new HttpException(
-        "Login failed. Please try again later.",
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return this.userClient.send("user_login", loginUserDto);
   }
 }
