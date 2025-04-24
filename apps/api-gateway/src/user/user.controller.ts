@@ -41,6 +41,8 @@ export class UserController {
 
   @Post("login")
   login(@Body() loginUserDto: LoginUserDto) {
+    console.log("in the login", loginUserDto);
+    
     return this.userClient.send("user_login", loginUserDto);
   }
 }

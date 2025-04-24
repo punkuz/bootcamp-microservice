@@ -26,6 +26,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/microservices": "^11.0.16",
     "@nestjs/mongoose": "^11.0.3",
+    "@nestjs/typeorm": "^11.0.0",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
     "class-transformer": "^0.5.1",

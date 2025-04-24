@@ -2,6 +2,8 @@ import { IsEmail, IsEnum, IsNotEmpty, Length } from "class-validator";
 
 // DTO for creating a new user
 export class CreateUserDto {
+  id: string;
+
   @IsNotEmpty({ message: "Please enter your username!" })
   username: string;
 

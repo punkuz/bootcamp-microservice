@@ -8,6 +8,8 @@ async function bootstrap() {
   app.setGlobalPrefix("api/v1");
   app.useGlobalFilters(new RpcExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, () => {
+    console.log(`API Gateway is running on: ${process.env.PORT ?? 3000}`);
+  });
 }
 bootstrap();
