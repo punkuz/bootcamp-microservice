@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { CreateUserDto } from "./dto";
 import { ClientProxy } from "@nestjs/microservices";
 import { LoginUserDto } from "./dto/login-user.dto";
@@ -41,8 +49,14 @@ export class UserController {
 
   @Post("login")
   login(@Body() loginUserDto: LoginUserDto) {
-    console.log("in the login", loginUserDto);
-    
     return this.userClient.send("user_login", loginUserDto);
+  }
+
+  @Get(":id")
+  @Roles(Role.Admin, Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  findUserById(@Param("id") id: string) {
+    return this.userClient.send("find_user_by_id", id);
   }
 }

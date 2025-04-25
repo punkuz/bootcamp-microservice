@@ -5,7 +5,8 @@ import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-console.log("usuusus", process);
+import { CacheModule } from "src/cache/cache.module";
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -20,6 +21,18 @@ console.log("usuusus", process);
       }),
       inject: [ConfigService],
     }),
+    CacheModule,
+    // CacheModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     store: redisStore,
+    //     host: configService.get<string>("REDIS_HOST"),
+    //     port: configService.get<number>("REDIS_PORT"),
+    //     ttl: 3600,
+    //   }),
+    //   inject: [ConfigService],
+    //   isGlobal: true, // if you want cache to be available app-wide
+    // }),
   ],
   controllers: [UsersController],
   providers: [UsersService],

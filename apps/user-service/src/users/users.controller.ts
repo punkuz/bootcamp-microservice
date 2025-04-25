@@ -37,8 +37,8 @@ export class UsersController {
     return this.usersService.verifyToken(token["token"]);
   }
 
-  @MessagePattern("findOneUser")
-  findOne(@Payload() id: number) {
+  @MessagePattern("find_user_by_id")
+  findOne(@Payload() id: string) {
     return this.usersService.findOne(id);
   }
 
