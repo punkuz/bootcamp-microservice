@@ -20,8 +20,6 @@ export class BootcampController {
 
   @MessagePattern("find_one_bootcamp")
   findOne(@Payload() id: string) {
-    console.log("gg", id);
-    
     return this.bootcampService.findOne(id);
   }
 

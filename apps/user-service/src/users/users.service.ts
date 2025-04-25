@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { createSendToken } from "src/auth/jwt-token";
@@ -9,6 +9,7 @@ import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import { userData } from "src/constants/constant";
 import { HttpRpcException } from "src/exceptions/http.rpc.exception";
+import { Cacheable } from "cacheable";
 
 @Injectable()
 export class UsersService {
@@ -16,6 +17,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    @Inject("CACHE_INSTANCE") private readonly cacheService: Cacheable,
   ) {}
 
   async signup(createUserDto: CreateUserDto) {
@@ -55,8 +57,15 @@ export class UsersService {
     return createSendToken(user, this.jwtService);
   }
 
-  findAllUsers() {
-    return this.userRepository.find();
+  async findAllUsers() {
+    const cachedUsers = await this.cacheService.get<User[]>("users");
+    if (cachedUsers) {
+      return cachedUsers;
+    }
+    const users = await this.userRepository.find();
+    // Set the user in the cache with a TTL (Time-To-Live) of 1 minute (60 seconds)
+    await this.cacheService.set("users", users, "1m");
+    return users;
   }
 
   async verifyToken(token: string): Promise<BaseUserDto> {
@@ -81,8 +90,28 @@ export class UsersService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      const cachedUser = await this.cacheService.get<User>(`user:${id}`);
+      if (cachedUser) {
+        return cachedUser;
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw HttpRpcException.notFound("User not found.");
+      }
+
+      await this.cacheService.set(`user:${id}`, user);
+
+      return user;
+    } catch (error) {
+      console.log("Error finding user:", error);
+      throw HttpRpcException.notFound("User not found.");
+    }
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
